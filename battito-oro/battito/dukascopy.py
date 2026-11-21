@@ -36,7 +36,9 @@ def _hour(symbol, ts, cache):
                 if e.code == 404:
                     raw = b""
                     break
-                time.sleep(min(300, 30 * (attempt + 1)) if e.code == 429 else 2 * (attempt + 1))
+                wait = min(300, 30 * (attempt + 1)) if e.code == 429 else 2 * (attempt + 1)
+                print(f"  {ts:%Y-%m-%d %H}h: HTTP {e.code}, riprovo tra {wait}s", flush=True)
+                time.sleep(wait)
             except Exception:
                 time.sleep(2 * (attempt + 1))
         if raw is None:
@@ -64,7 +66,7 @@ def fetch(symbol, start, end, cache="data/duka", workers=1, verbose=True):
             done += 1
             if df is not None:
                 out.append(df)
-            if verbose and done % 24 == 0:
+            if verbose and (done % 6 == 0 or done == len(hours)):
                 print(f"  {done}/{len(hours)} ore", flush=True)
     if not out:
         raise RuntimeError("nessun tick nel periodo richiesto")
