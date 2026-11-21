@@ -33,6 +33,16 @@ Consiglio: iniziare con **1 settimana** (~5 min di elaborazione), poi estendere.
 Opzioni: `--from 2026-10-02 --to 2026-10-05`, `--horizons 5,30,120`, `--stride 5`,
 `--models trend_1f,auto_rls,analog`.
 
+### Barre a 1 minuto da Twelve Data (orizzonti 1/5/15 minuti)
+
+```bash
+export TWELVEDATA_API_KEY=la_tua_chiave          # mai nel codice
+python -m battito fetch --from 2026-09-01 --to 2026-11-21 --out data/xau_1min.csv
+python -m battito run --bars data/xau_1min.csv --holdout-from 2026-11-01 --out results/td_1min
+```
+Le barre fuori mercato (pausa 17-18 NY, weekend) vengono rimosse: il fornitore pubblica prezzi
+anche a mercato chiuso. Lo spread non è nel dato: è un costo ipotizzato (`--spread-bps`, default 0.8).
+
 ## Architettura (modulare, un file = una responsabilità)
 
 ```

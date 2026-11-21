@@ -86,12 +86,12 @@ def clean_ticks(df: pd.DataFrame, cfg) -> tuple[pd.DataFrame, dict]:
 
 
 def build_grid(ticks: pd.DataFrame, cfg) -> tuple[pd.DataFrame, dict]:
-    """Griglia a 1s: ultimo bid/ask del secondo, ffill limitato, sessioni, validita'."""
-    sec = ticks.ts.dt.floor("s")
+    """Griglia regolare (1 s, o 1 min in modalita' barre): ultimo bid/ask del secondo, ffill limitato, sessioni, validita'."""
+    sec = ticks.ts.dt.floor(cfg.freq)
     g = ticks.groupby(sec)
     last = g[["bid", "ask"]].last()
     cnt = g.size()
-    idx = pd.date_range(last.index[0], last.index[-1], freq="s")
+    idx = pd.date_range(last.index[0], last.index[-1], freq=cfg.freq)
     grid = last.reindex(idx)
     has = grid.bid.notna().to_numpy()
     n = len(idx)

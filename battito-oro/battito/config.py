@@ -29,6 +29,9 @@ class Config:
     bootstrap: int = 500
     alpha: float = 0.05
     seed: int = 42
+    # unita' della griglia: "s" = tick (tutti i parametri in secondi),
+    # "min" = barre a 1 minuto (tutti i parametri in barre)
+    freq: str = "s"
 
     def check(self):
         assert self.analog_len % self.analog_paa == 0, "analog_paa deve dividere analog_len"
@@ -40,3 +43,10 @@ class Config:
         d = asdict(self)
         d["horizons"] = list(self.horizons)
         return d
+
+
+def bar_config(horizons=(1, 5, 15)):
+    """Preset per barre a 1 minuto: orizzonti, finestre e sessioni espressi in barre.
+    session_gap=180: la pausa giornaliera di 1 h non spezza la sessione, il weekend si'."""
+    return Config(horizons=tuple(horizons), stride=1, freq="min", max_stale=3,
+                  session_gap=180, warmup=300, vol_span=60).check()
