@@ -3,6 +3,7 @@
   python -m battito run --csv data/xauusd_ticks.csv --out results/run1
   python -m battito run --synthetic momentum --days 3
   python -m battito selftest
+  python -m battito ticks --from 2026-11-02 --to 2026-11-14 --out data/xau_ticks.csv
   python -m battito fetch --from 2026-09-01 --to 2026-11-21 --out data/xau_1min.csv
   python -m battito run --bars data/xau_1min.csv --holdout-from 2026-11-01
 """
@@ -13,7 +14,7 @@ import time
 import pandas as pd
 
 from .config import Config, bar_config
-from . import data, features, engine, evaluation, report, synthetic, twelvedata
+from . import data, features, engine, evaluation, report, synthetic, twelvedata, dukascopy
 
 
 def pipeline(ticks, cfg, out=None, only=None, verbose=True, holdout_from=None):
@@ -74,6 +75,12 @@ def main(argv=None):
     f.add_argument("--apikey", default=None, help="meglio: export TWELVEDATA_API_KEY=...")
     f.add_argument("--out", required=True)
 
+    k = sub.add_parser("ticks", help="scarica tick Dukascopy (gratis, con bid/ask)")
+    k.add_argument("--symbol", default="XAUUSD")
+    k.add_argument("--from", dest="date_from", required=True)
+    k.add_argument("--to", dest="date_to", required=True, help="esclusa")
+    k.add_argument("--out", required=True)
+
     r = sub.add_parser("run", help="esperimento walk-forward")
     src = r.add_mutually_exclusive_group(required=True)
     src.add_argument("--csv", help="tick: timestamp,bid,ask")
@@ -105,6 +112,12 @@ def main(argv=None):
         df = twelvedata.fetch(a.symbol, a.interval, a.date_from, a.date_to, a.apikey)
         df.to_csv(a.out, index=False)
         print(f"scritte {len(df)} barre in {a.out}")
+        return 0
+
+    if a.cmd == "ticks":
+        df = dukascopy.fetch(a.symbol, a.date_from, a.date_to)
+        df.to_csv(a.out, index=False)
+        print(f"scritti {len(df)} tick in {a.out}")
         return 0
 
     hz = tuple(int(x) for x in a.horizons.split(",")) if a.horizons else None
