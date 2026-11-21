@@ -60,6 +60,10 @@ def _hour(symbol, ts, cache):
 def fetch(symbol, start, end, cache="data/duka", workers=1, verbose=True):
     hours = pd.date_range(pd.Timestamp(start, tz="UTC"), pd.Timestamp(end, tz="UTC"),
                           freq="h", inclusive="left")
+    # salta le ore a mercato chiuso (ven 22:00 -> dom 22:00 UTC): sono file vuoti ma costano richieste
+    wd, hr = hours.dayofweek, hours.hour
+    closed = (wd == 5) | ((wd == 4) & (hr >= 22)) | ((wd == 6) & (hr < 22))
+    hours = hours[~closed]
     out, done = [], 0
     with ThreadPoolExecutor(workers) as ex:
         for df in ex.map(lambda h: _hour(symbol, h, cache), hours):
